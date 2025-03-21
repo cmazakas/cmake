@@ -214,6 +214,28 @@ function(__boost_install_update_include_directory lib incdir prop)
 
 endfunction()
 
+function(__boost_install_natvis lib)
+  if(lib MATCHES "^boost_(.*)$")
+
+    set(libname ${CMAKE_MATCH_1})
+    set(natvis_file ${PROJECT_SOURCE_DIR}/libs/${libname}/extra/${lib}.natvis)
+    get_target_property(sources ${lib} INTERFACE_SOURCES)
+
+    foreach(src IN LISTS sources)
+
+      if("${src}" STREQUAL "${natvis_file}" OR "${src}" STREQUAL "$<BUILD_INTERFACE:${natvis_file}>")
+
+        set_target_properties(${lib} PROPERTIES INTERFACE_SOURCES "$<BUILD_INTERFACE:${natvis_file}>;$<INSTALL_INTERFACE:${CMAKE_INSTALL_DATADIR}/${lib}-${PROJECT_VERSION}/${lib}.natvis>")
+        install(FILES ${natvis_file} DESTINATION ${CMAKE_INSTALL_DATADIR}/${lib}-${PROJECT_VERSION})
+
+      endif()
+
+    endforeach()
+
+  endif()
+
+endfunction()
+
 # Installs a single target
 # boost_install_target(TARGET target VERSION version [HEADER_DIRECTORY directory])
 
@@ -316,6 +338,8 @@ function(boost_install_target)
     if(TYPE STREQUAL "STATIC_LIBRARY" AND NOT CMAKE_VERSION VERSION_LESS 3.15)
       install(FILES "$<TARGET_FILE_DIR:${LIB}>/$<TARGET_FILE_PREFIX:${LIB}>$<TARGET_FILE_BASE_NAME:${LIB}>.pdb" DESTINATION ${CMAKE_INSTALL_LIBDIR} OPTIONAL)
     endif()
+
+    __boost_install_natvis(${LIB})
   endif()
 
   install(EXPORT ${LIB}-targets DESTINATION "${CONFIG_INSTALL_DIR}" NAMESPACE Boost:: FILE ${LIB}-targets.cmake)
