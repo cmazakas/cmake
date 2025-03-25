@@ -217,16 +217,19 @@ endfunction()
 function(__boost_install_natvis lib)
   if(lib MATCHES "^boost_(.*)$")
 
-    set(libname ${CMAKE_MATCH_1})
-    set(natvis_file ${PROJECT_SOURCE_DIR}/libs/${libname}/extra/${lib}.natvis)
     get_target_property(sources ${lib} INTERFACE_SOURCES)
-
     foreach(src IN LISTS sources)
 
-      if("${src}" STREQUAL "${natvis_file}" OR "${src}" STREQUAL "$<BUILD_INTERFACE:${natvis_file}>")
+      if(${src} MATCHES "^([A-Za-z0-9/_\-]+/${lib}\.natvis)|\\$<BUILD_INTERFACE:([A-Za-z0-9/_\-]+/${lib}\.natvis)>$")
+
+        if("${CMAKE_MATCH_1}" STREQUAL "")
+          set(natvis_file "${CMAKE_MATCH_2}")
+        else()
+          set(natvis_file "${CMAKE_MATCH_1}")
+        endif()
 
         set_target_properties(${lib} PROPERTIES INTERFACE_SOURCES "$<BUILD_INTERFACE:${natvis_file}>;$<INSTALL_INTERFACE:${CMAKE_INSTALL_DATADIR}/${lib}-${PROJECT_VERSION}/${lib}.natvis>")
-        install(FILES ${natvis_file} DESTINATION ${CMAKE_INSTALL_DATADIR}/${lib}-${PROJECT_VERSION})
+        install(FILES "${natvis_file}" DESTINATION ${CMAKE_INSTALL_DATADIR}/${lib}-${PROJECT_VERSION})
 
       endif()
 
