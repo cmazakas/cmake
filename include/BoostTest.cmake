@@ -193,7 +193,11 @@ function(boost_test)
     target_compile_features(${__NAME} PRIVATE ${BOOST_TEST_COMPILE_FEATURES})
     target_include_directories(${__NAME} PRIVATE ${BOOST_TEST_INCLUDE_DIRECTORIES})
 
-    add_test(NAME ${__TYPE}-${__NAME} COMMAND "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target ${__NAME} --config $<CONFIG>)
+    if(C2_BUILD_ROOT)
+      add_test(NAME ${__TYPE}-${__NAME} COMMAND "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target "${CMAKE_NINJA_OUTPUT_PATH_PREFIX}/${__NAME}" --config $<CONFIG> -- -C ${C2_BUILD_ROOT})
+    else()
+      add_test(NAME ${__TYPE}-${__NAME} COMMAND "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target ${__NAME} --config $<CONFIG>)
+    endif()
 
     set_tests_properties(${__TYPE}-${__NAME} PROPERTIES WILL_FAIL TRUE RUN_SERIAL TRUE)
 
