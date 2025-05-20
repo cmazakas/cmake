@@ -169,6 +169,12 @@ function(boost_test)
     add_custom_target(tests-quick)
   endif()
 
+  if(C2_BUILD_ROOT)
+    set(__TEST_NAME "${CMAKE_NINJA_OUTPUT_PATH_PREFIX}/${__NAME}")
+  else()
+    set(__TEST_NAME "${__NAME}")
+  endif()
+
   if(__TYPE STREQUAL "compile")
 
     add_library(${__NAME} STATIC EXCLUDE_FROM_ALL ${BOOST_TEST_SOURCES})
@@ -194,12 +200,12 @@ function(boost_test)
     target_include_directories(${__NAME} PRIVATE ${BOOST_TEST_INCLUDE_DIRECTORIES})
 
     if(C2_BUILD_ROOT)
-      add_test(NAME ${__TYPE}-${__NAME} COMMAND "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target "${CMAKE_NINJA_OUTPUT_PATH_PREFIX}/${__NAME}" --config $<CONFIG> -- -C ${C2_BUILD_ROOT})
+      add_test(NAME ${__TYPE}-${__TEST_NAME} COMMAND "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target "${CMAKE_NINJA_OUTPUT_PATH_PREFIX}/${__NAME}" --config $<CONFIG> -- -C ${C2_BUILD_ROOT})
     else()
-      add_test(NAME ${__TYPE}-${__NAME} COMMAND "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target ${__NAME} --config $<CONFIG>)
+      add_test(NAME ${__TYPE}-${__TEST_NAME} COMMAND "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target ${__NAME} --config $<CONFIG>)
     endif()
 
-    set_tests_properties(${__TYPE}-${__NAME} PROPERTIES WILL_FAIL TRUE RUN_SERIAL TRUE)
+    set_tests_properties(${__TYPE}-${__TEST_NAME} PROPERTIES WILL_FAIL TRUE RUN_SERIAL TRUE)
 
   elseif(__TYPE STREQUAL "link")
 
@@ -238,8 +244,8 @@ function(boost_test)
     target_compile_features(${__NAME} PRIVATE ${BOOST_TEST_COMPILE_FEATURES})
     target_include_directories(${__NAME} PRIVATE ${BOOST_TEST_INCLUDE_DIRECTORIES})
 
-    add_test(NAME ${__TYPE}-${__NAME} COMMAND "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target ${__NAME} --config $<CONFIG>)
-    set_tests_properties(${__TYPE}-${__NAME} PROPERTIES WILL_FAIL TRUE RUN_SERIAL TRUE)
+    add_test(NAME ${__TYPE}-${__TEST_NAME} COMMAND "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target ${__NAME} --config $<CONFIG>)
+    set_tests_properties(${__TYPE}-${__TEST_NAME} PROPERTIES WILL_FAIL TRUE RUN_SERIAL TRUE)
 
   elseif(__TYPE STREQUAL "run" OR __TYPE STREQUAL "run-fail")
 
@@ -256,15 +262,15 @@ function(boost_test)
       add_dependencies(tests-quick ${__NAME})
     endif()
 
-    add_test(NAME ${__TYPE}-${__NAME} COMMAND ${__NAME} ${__ARGUMENTS})
+    add_test(NAME ${__TYPE}-${__TEST_NAME} COMMAND ${__NAME} ${__ARGUMENTS})
 
     if(__TYPE STREQUAL "run-fail")
-      set_tests_properties(${__TYPE}-${__NAME} PROPERTIES WILL_FAIL TRUE)
+      set_tests_properties(${__TYPE}-${__TEST_NAME} PROPERTIES WILL_FAIL TRUE)
     endif()
 
     if(BOOST_TEST_WORKING_DIRECTORY)
       set_target_properties(${__NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BOOST_TEST_WORKING_DIRECTORY}")
-      set_tests_properties(${__TYPE}-${__NAME} PROPERTIES WORKING_DIRECTORY "${BOOST_TEST_WORKING_DIRECTORY}")
+      set_tests_properties(${__TYPE}-${__TEST_NAME} PROPERTIES WORKING_DIRECTORY "${BOOST_TEST_WORKING_DIRECTORY}")
     endif()
 
   else()
